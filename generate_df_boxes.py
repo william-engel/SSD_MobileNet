@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 '''Lessons Learned:
 A given 2x2 feature layer:
