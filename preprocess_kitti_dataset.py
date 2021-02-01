@@ -279,6 +279,9 @@ def preprocess_data(image_path, label_path, target_size, original_size, df_boxes
                          Tout = [tf.float32])
   gt.set_shape((None, 5)) # [[x1,y1,x2,y2,c]]
 
+  # preprocess image
+  image = (2.0 / 255.0) * image - 1.0
+
   gt_boxes   = gt[:,:4]
   gt_classes = gt[:, 4]
 
