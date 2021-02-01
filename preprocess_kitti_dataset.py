@@ -66,6 +66,10 @@ def preprocess_label(labels, label2id, original_size):
 
   return gt_boxes
 
+def print_box_specs_list(box_specs_list, decimals = 1):
+  for box_spec in box_specs_list: 
+    print(list(map(tuple,np.round(box_spec, decimals))))
+
 def get_box_specs_list(aspect_ratios = None, scale_factors = None, smin = 0.2, smax = 0.95, K = 6):
   '''
   Args:

@@ -52,7 +52,6 @@ def postprocess_prediction(predictions, df_boxes, id2label, from_logits = True, 
             pred_boxes = tf.stack([pred_boxes[:,1], pred_boxes[:,0], pred_boxes[:,3], pred_boxes[:,2]], axis = 1) 
 
         output_dict['raw_detection_boxes'].append(pred_boxes)
-        print('raw:',pred_boxes.shape)
 
         # filter out background class (0)
         filtered_boxes = tf.gather(pred_boxes, foreground_indices)
