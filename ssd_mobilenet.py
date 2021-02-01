@@ -7,7 +7,7 @@ from mobilenetv1 import MobileNet
 def SSD_MobileNet(num_classes, box_specs_list):
 
   def _conv_block(input, filters, kernel_size = (3, 3), strides = (1, 1), block_id = 0):
-    x = Conv2D(filters, kernel_size, strides, padding = 'same', use_bias = False, kernel_initializer = 'he_normal', kernel_regularizer = l2(1e-4), name = 'conv%s' % block_id)(input)
+    x = Conv2D(filters, kernel_size, strides, padding = 'same', use_bias = False, kernel_initializer = 'he_normal', kernel_regularizer = l2(4e-4), name = 'conv%s' % block_id)(input)
     x = BatchNormalization(name = 'conv%s_bn' % block_id)(x)
     x = ReLU(6., name = 'conv%s_relu' % block_id)(x) # ReLU6
 
