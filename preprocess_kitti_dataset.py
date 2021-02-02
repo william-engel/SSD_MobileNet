@@ -252,6 +252,13 @@ def convert_scale(matrix,scale, wImage, hImage):
     matrix[:,3]/hImage],axis=-1) 
 
 
+def flip_horizontal(image, label, prob = 0.5):
+  '''label: [[x1, y1, x2, y2, c],...]'''
+  if tf.random.uniform(shape = (1,), minval = 0.0, maxval = 1.0) <= prob:
+    image = tf.image.flip_left_right(image)
+    label = tf.stack([1-label[:,2], label[:,1], 1-label[:,0], label[:,3], label[:,4]], axis = 1) # x1 = 1 - x2, x2 = 1 - x1
+  return image, label
+
 def load_image(image_path, target_size):
   if tf.is_tensor(image_path): image_path = image_path.numpy().decode('utf-8')
   image = tf.keras.preprocessing.image.load_img(image_path, target_size = target_size, interpolation = 'bilinear')
@@ -279,7 +286,10 @@ def preprocess_data(image_path, label_path, target_size, original_size, df_boxes
                          Tout = [tf.float32])
   gt.set_shape((None, 5)) # [[x1,y1,x2,y2,c]]
 
-  # preprocess image
+  # data augmentation
+  image, label = flip_horizontal(image, label)
+
+  # normalize image [-1, 1]
   image = (2.0 / 255.0) * image - 1.0
 
   gt_boxes   = gt[:,:4]
