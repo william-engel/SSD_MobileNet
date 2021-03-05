@@ -4,7 +4,8 @@ from tensorflow.keras import Model
 
 from mobilenetv1 import MobileNet
 
-def SSD_MobileNet(num_classes, box_specs_list):
+def SSD_MobileNet(num_classes, box_specs_list, num_feature_layers = 2):
+  ''' num_feature_layers: output of mobilenet [38x38, 19x19, 10x10] if 3 all three feature extraction layers are used, if 2 only [19x19, 10x10]'''
 
   def _conv_block(input, filters, kernel_size = (3, 3), strides = (1, 1), block_id = 0):
     x = Conv2D(filters, kernel_size, strides, padding = 'same', use_bias = False, kernel_initializer = 'he_normal', kernel_regularizer = l2(4e-5), name = 'conv%s' % block_id)(input)
@@ -16,7 +17,7 @@ def SSD_MobileNet(num_classes, box_specs_list):
   num_classes = num_classes + 1 # add background class
 
   # load basemodel
-  base_model = MobileNet(num_classes = num_classes)
+  base_model = MobileNet(num_classes = num_classes, num_feature_layers = num_feature_layers)
 
   # extend basemodel
   inputs = base_model.inputs

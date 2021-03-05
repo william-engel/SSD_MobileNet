@@ -2,7 +2,7 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, DepthwiseC
 from tensorflow.keras import Model
 
 
-def MobileNet(input_shape = (300,300,3), num_classes = 1000, include_top = False):
+def MobileNet(input_shape = (300,300,3), num_classes = 1000, include_top = False, num_feature_layers = 2):
 
   def _conv_block(input, filters, kernel_size = (3, 3), strides = (1, 1), block_id = 0):
     x = Conv2D(filters, kernel_size, strides, padding = 'same', use_bias = False, name = 'conv%s' % block_id)(input)
@@ -33,7 +33,8 @@ def MobileNet(input_shape = (300,300,3), num_classes = 1000, include_top = False
   x = _depthwise_conv_block(input = x, filters = 128, strides = (1,1), block_id = 3)
 
   x = _depthwise_conv_block(input = x, filters = 256, strides = (2,2), block_id = 4)
-  x = _depthwise_conv_block(input = x, filters = 256, strides = (1,1), block_id = 5)
+  x = _depthwise_conv_block(input = x, filters = 256, strides = (1,1), block_id = 5) # 36x36
+  if num_feature_layers >= 3: output.append(x)
 
   x = _depthwise_conv_block(input = x, filters = 512, strides = (2,2), block_id = 6)
   x = _depthwise_conv_block(input = x, filters = 512, strides = (1,1), block_id = 7)
@@ -41,11 +42,11 @@ def MobileNet(input_shape = (300,300,3), num_classes = 1000, include_top = False
   x = _depthwise_conv_block(input = x, filters = 512, strides = (1,1), block_id = 9)
   x = _depthwise_conv_block(input = x, filters = 512, strides = (1,1), block_id = 10) 
   x = _depthwise_conv_block(input = x, filters = 512, strides = (1,1), block_id = 11)  # 19x19
-  output.append(x)
+  if num_feature_layers >= 2: output.append(x)
 
   x = _depthwise_conv_block(input = x, filters = 1024, strides = (2,2), block_id = 12)
   x = _depthwise_conv_block(input = x, filters = 1024, strides = (1,1), block_id = 13) # 10x10
-  output.append(x)
+  if num_feature_layers >= 1: output.append(x)
 
   if include_top:
 
