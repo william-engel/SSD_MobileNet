@@ -23,7 +23,7 @@ def SSD_MobileNet(num_classes, box_specs_list, num_feature_layers = 2):
   inputs = base_model.inputs
   outputs = base_model.outputs
   
-  x = _conv_block(outputs[1], filters = 256, kernel_size = (1,1), strides = (1,1), block_id = '14_1')
+  x = _conv_block(outputs[-1], filters = 256, kernel_size = (1,1), strides = (1,1), block_id = '14_1')
   x = _conv_block(input = x, filters = 512, kernel_size = (3,3), strides = (2,2), block_id = '14_2') # 5x5
   outputs.append(x)
 
