@@ -25,12 +25,13 @@ def postprocess_prediction(predictions, df_boxes, id2label, from_logits = True, 
                    'num_detections' : []
     }
 
+    max_output_size = 100
+
     for prediction in predictions:
 
         # This depends on how we concatenate out model output [loc, cls] or [cls, loc]
         loc = prediction[:,-4:] # bbox encoded
         cls = prediction[:,:-4] # class prediction
-
 
         # postprocess classes
         if from_logits: cls = tf.keras.layers.Softmax()(cls) # check if model returns from logits!
@@ -38,9 +39,8 @@ def postprocess_prediction(predictions, df_boxes, id2label, from_logits = True, 
         class_score = tf.reduce_max(cls, axis = -1)
         foreground_indices = tf.where(class_id != 0)[:,0]
 
-        output_dict['raw_detection_scores'].append(class_score)
-        output_dict['detection_multiclass_scores'].append(cls)
-
+        output_dict['raw_detection_scores'] += [class_score]
+        output_dict['detection_multiclass_scores'] += [cls]
 
         # decode bbox
         variance = [5.0, 5.0, 10.0, 10.0]
@@ -51,7 +51,7 @@ def postprocess_prediction(predictions, df_boxes, id2label, from_logits = True, 
         if flip_coordinates:
             pred_boxes = tf.stack([pred_boxes[:,1], pred_boxes[:,0], pred_boxes[:,3], pred_boxes[:,2]], axis = 1) 
 
-        output_dict['raw_detection_boxes'].append(pred_boxes)
+        output_dict['raw_detection_boxes'] += [pred_boxes]
 
         # filter out background class (0)
         filtered_boxes = tf.gather(pred_boxes, foreground_indices)
@@ -59,18 +59,26 @@ def postprocess_prediction(predictions, df_boxes, id2label, from_logits = True, 
         filtered_class_score = tf.gather(class_score, foreground_indices)
 
         # nms
-        indices = tf.image.non_max_suppression(filtered_boxes, filtered_class_score, 100, score_threshold=1e-8)
+        indices = tf.image.non_max_suppression(filtered_boxes, filtered_class_score, max_output_size, score_threshold=1e-8)
 
         # filter out supressed boxes
         final_boxes = tf.gather(filtered_boxes, indices)
         final_class_id = tf.gather(filtered_class_id, indices)
         final_class_score = tf.gather(filtered_class_score, indices)
 
-        output_dict['detection_boxes'].append(final_boxes)
-        output_dict['detection_scores'].append(final_class_score)
-        output_dict['detection_classes'].append(final_class_id)
-        output_dict['num_detections'].append(len(final_boxes))
+        # pad to same shape
+        num_boxes = indices.shape[0]
+        pad_width = max_output_size - num_boxes
+        
+        final_boxes = tf.pad(final_boxes, [[0,pad_width], [0,0]])
+        final_class_id = tf.pad(final_class_id, [[0,pad_width]])
+        final_class_score = tf.pad(final_class_score, [[0,pad_width]])
 
-        output_dict = {key: tf.stack(value, axis = 0) for key,value in output_dict.items()}
+        output_dict['detection_boxes'] += [final_boxes]
+        output_dict['detection_scores'] += [final_class_score]
+        output_dict['detection_classes'] += [final_class_id]
+        output_dict['num_detections'] += [num_boxes]
+
+    output_dict = {key: tf.stack(value, axis = 0) for key,value in output_dict.items()}
 
     return output_dict
